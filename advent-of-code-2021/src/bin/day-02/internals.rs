@@ -1,34 +1,37 @@
-use std::str::FromStr;
+#[derive(Debug)]
+pub struct ParseError;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
-    Forward(i32),
-    Down(i32),
-    Up(i32),
+    Forward(isize),
+    Down(isize),
+    Up(isize),
 }
 
-impl FromStr for Direction {
-    type Err = ();
+impl TryFrom<&str> for Direction {
+    type Error = ParseError;
 
-    // FIXME: remove .unwrap() and add a friendly Err
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let v: Vec<&str> = s.split(" ").collect();
-        let (dir, len) = (v[0], v[1]);
+    fn try_from(movement: &str) -> Result<Self, Self::Error> {
+        let [direction, length]: [&str; 2] = movement
+            .split(' ')
+            .collect::<Vec<_>>()
+            .try_into()
+            .map_err(|_| ParseError)?;
 
-        match dir {
-            "Forward" | "forward" => {
-                Ok(Self::Forward(len.parse::<i32>().unwrap()))
-            }
-            "Down" | "down" => Ok(Self::Down(len.parse::<i32>().unwrap())),
-            "Up" | "up" => Ok(Self::Up(len.parse::<i32>().unwrap())),
-            _ => panic!(""),
+        let length = length.parse::<isize>().map_err(|_| ParseError)?;
+
+        match direction.to_ascii_lowercase().as_str() {
+            "forward" => Ok(Self::Forward(length)),
+            "down" => Ok(Self::Down(length)),
+            "up" => Ok(Self::Up(length)),
+            _ => Err(ParseError),
         }
     }
 }
 
 pub struct Submarine {
-    position: [i32; 2],
-    aim: Option<i32>,
+    position: [isize; 2],
+    aim: Option<isize>,
 }
 
 impl Submarine {
@@ -39,7 +42,7 @@ impl Submarine {
         }
     }
 
-    pub fn position(&self) -> &[i32] {
+    pub fn position(&self) -> &[isize] {
         &self.position
     }
 }
@@ -113,7 +116,7 @@ mod tests {
             submarine_b.dive(direction);
         });
 
-        assert_eq!(submarine_a.position().iter().product::<i32>(), 150);
-        assert_eq!(submarine_b.position().iter().product::<i32>(), 900);
+        assert_eq!(submarine_a.position().iter().product::<isize>(), 150);
+        assert_eq!(submarine_b.position().iter().product::<isize>(), 900);
     }
 }
