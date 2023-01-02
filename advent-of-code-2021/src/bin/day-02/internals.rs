@@ -16,7 +16,9 @@ impl FromStr for Direction {
         let (dir, len) = (v[0], v[1]);
 
         match dir {
-            "Forward" | "forward" => Ok(Self::Forward(len.parse::<i32>().unwrap())),
+            "Forward" | "forward" => {
+                Ok(Self::Forward(len.parse::<i32>().unwrap()))
+            }
             "Down" | "down" => Ok(Self::Down(len.parse::<i32>().unwrap())),
             "Up" | "up" => Ok(Self::Up(len.parse::<i32>().unwrap())),
             _ => panic!(""),

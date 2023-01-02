@@ -1,18 +1,11 @@
 use std::collections::LinkedList;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+
+const INPUT: &str = include_str!("./input.txt");
 
 fn main() -> Result<(), std::io::Error> {
-    let file = File::open("day-01/input.txt")?;
-    let buf = BufReader::new(file);
-
-    let measures: Vec<i32> = buf
+    let measures: Vec<_> = INPUT
         .lines()
-        .map(|line| {
-            line.expect("Could not parse line")
-                .parse()
-                .expect("Value is not a i32")
-        })
+        .map(|line| line.parse().expect("Value is not a i32"))
         .collect();
 
     let mut sonar = LinkedList::new();
