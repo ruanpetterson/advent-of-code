@@ -30,28 +30,25 @@ fn read_to_elves(input: &str) -> impl Iterator<Item = Calories> + '_ {
 fn main() {
     static INPUT: &str = include_str!("./input.txt");
 
-    let elves = {
-        let elves = read_to_elves(INPUT).enumerate().fold(
-            VecDeque::with_capacity(4),
-            |mut heap, elf| {
-                // TODO: use array instead VecDeque and implement a way to
-                // insert in the midle of array
-                let value = Index(elf.0, elf.1);
-                let (Ok(position) | Err(position)) = heap.binary_search(&value);
-                heap.insert(position, value);
-                if heap.len() == 4 {
-                    heap.pop_front();
-                }
-                heap
-            },
-        );
-        elves
-    };
+    let elves = read_to_elves(INPUT).enumerate().fold(
+        VecDeque::with_capacity(4),
+        |mut heap, elf| {
+            // TODO: use array instead VecDeque and implement a way to
+            // insert in the midle of array
+            let value = Index(elf.0, elf.1);
+            let (Ok(position) | Err(position)) = heap.binary_search(&value);
+            heap.insert(position, value);
+            if heap.len() == 4 {
+                heap.pop_front();
+            }
+            heap
+        },
+    );
 
     println!("--- Day 1: Calorie Counting ---");
     if let Some(Index(nth, calories)) = elves.back() {
-        println!("Find the Elf carrying the most Calories: {}", nth);
-        println!("How many total Calories is that Elf carrying? {}", calories);
+        println!("Find the Elf carrying the most Calories: {nth}");
+        println!("How many total Calories is that Elf carrying? {calories}");
     }
 
     println!("--- Part Two ---");
@@ -61,8 +58,7 @@ fn main() {
         .map(|Index(_, calories)| calories)
         .sum::<usize>();
     println!(
-        "How many Calories are those Elves carrying in total? {}",
-        top_three_sum
+        "How many Calories are those Elves carrying in total? {top_three_sum}"
     );
 }
 

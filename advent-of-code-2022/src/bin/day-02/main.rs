@@ -145,13 +145,19 @@ fn main() {
     let result = read_to_hands_part_1(INPUT).fold(0, |acc, (their, our)| {
         acc + our.outcome(their).points() + our.points()
     });
-    println!("What would your total score be if everything goes exactly according to your strategy guide? {}", result);
+    println!(
+        "What would your total score be if everything goes \
+        exactly according to your strategy guide? {result}"
+    );
 
     println!("--- Part Two ---");
     let result = read_to_hands_part_2(INPUT).fold(0, |acc, (their, our)| {
         acc + our.outcome(their).points() + our.points()
     });
-    println!("What would your total score be if everything goes exactly according to your strategy guide? {}", result);
+    println!(
+        "What would your total score be if everything goes \
+        exactly according to your strategy guide? {result}"
+    );
 }
 
 #[cfg(test)]

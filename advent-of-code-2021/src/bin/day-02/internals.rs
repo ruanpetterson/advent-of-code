@@ -29,6 +29,7 @@ impl TryFrom<&str> for Direction {
     }
 }
 
+#[derive(Default)]
 pub struct Submarine {
     position: [isize; 2],
     aim: Option<isize>,
@@ -44,15 +45,6 @@ impl Submarine {
 
     pub fn position(&self) -> &[isize] {
         &self.position
-    }
-}
-
-impl Default for Submarine {
-    fn default() -> Self {
-        Self {
-            position: [0, 0],
-            aim: None,
-        }
     }
 }
 
