@@ -6,7 +6,7 @@ const INPUT: &str = include_str!("./input.txt");
 fn main() -> Result<(), std::io::Error> {
     let movements: Vec<Direction> = INPUT
         .lines()
-        .map(|line| line.try_into().expect("Value is not a measure"))
+        .filter_map(|line| line.try_into().ok())
         .collect();
 
     let mut submarine_a = Submarine::default();

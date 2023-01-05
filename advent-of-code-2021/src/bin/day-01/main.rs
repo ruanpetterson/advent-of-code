@@ -3,10 +3,8 @@ use std::collections::LinkedList;
 const INPUT: &str = include_str!("./input.txt");
 
 fn main() -> Result<(), std::io::Error> {
-    let measures: Vec<_> = INPUT
-        .lines()
-        .map(|line| line.parse().expect("Value is not a i32"))
-        .collect();
+    let measures: Vec<_> =
+        INPUT.lines().filter_map(|line| line.parse().ok()).collect();
 
     let mut sonar = LinkedList::new();
     let mut puzzle_a = 0;
