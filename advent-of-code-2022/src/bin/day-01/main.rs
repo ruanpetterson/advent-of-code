@@ -39,20 +39,19 @@ fn iter_to_list<const N: usize>(
         })
 }
 
+/// Inserts an element at position `index` within the slice, shifting all
+/// elements after it to the right, overwriting the last one.
 fn insert_at<T>(slice: &mut [T], index: usize, element: T) {
-    let len = slice.len();
-
-    unsafe {
-        let p = slice.as_mut_ptr().add(index);
-        if index < len {
-            core::ptr::copy(p, p.add(1), len - index);
-        } else if index == len {
-            // No copy needed
-        } else {
-            panic!("insertion index (is {index}) should be <= len (is {len})");
+    if index < slice.len() {
+        // SAFETY: this is safe, trust me!
+        unsafe {
+            let p = slice.as_mut_ptr().add(index);
+            core::ptr::copy(p, p.add(1), slice.len() - index - 1);
+            p.write(element);
         }
-
-        p.write(element);
+    } else {
+        // Trying to insert out-of-bounds.
+        // No-op.
     }
 }
 
