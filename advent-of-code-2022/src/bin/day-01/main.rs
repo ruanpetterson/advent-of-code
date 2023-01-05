@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
 use std::{cmp, iter};
 
+use arrayvec::ArrayVec;
+
 type Calories = usize;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -31,22 +33,20 @@ fn main() {
     static INPUT: &str = include_str!("./input.txt");
 
     let elves = read_to_elves(INPUT).enumerate().fold(
-        VecDeque::with_capacity(4),
-        |mut heap, elf| {
-            // TODO: use array instead VecDeque and implement a way to
-            // insert in the midle of array
-            let value = Index(elf.0, elf.1);
+        ArrayVec::<_, 4>::new_const(),
+        |mut heap, (nth, calories)| {
+            let value = Index(nth, calories);
             let (Ok(position) | Err(position)) = heap.binary_search(&value);
             heap.insert(position, value);
             if heap.len() == 4 {
-                heap.pop_front();
-            }
+                assert!(heap.pop_at(0).is_some());
+            };
             heap
         },
     );
 
     println!("--- Day 1: Calorie Counting ---");
-    if let Some(Index(nth, calories)) = elves.back() {
+    if let Some(Index(nth, calories)) = elves.last() {
         println!("Find the Elf carrying the most Calories: {nth}");
         println!("How many total Calories is that Elf carrying? {calories}");
     }
