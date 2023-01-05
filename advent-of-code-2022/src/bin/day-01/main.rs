@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::{cmp, iter};
 
 use arrayvec::ArrayVec;
