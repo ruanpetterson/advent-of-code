@@ -16,7 +16,7 @@ impl cmp::Ord for Index {
     }
 }
 
-fn read_to_elves(input: &str) -> impl Iterator<Item = Calories> + '_ {
+fn read_to_elves_iter(input: &str) -> impl Iterator<Item = Calories> + '_ {
     let mut lines = input.lines();
     iter::from_fn(move || {
         lines
@@ -24,6 +24,19 @@ fn read_to_elves(input: &str) -> impl Iterator<Item = Calories> + '_ {
             .map_while(|line| line.parse::<usize>().ok())
             .reduce(|acc, curr| acc + curr)
     })
+}
+
+fn iter_to_list<const N: usize>(
+    it: impl Iterator<Item = Calories>,
+) -> [Index; N] {
+    it.enumerate()
+        .fold([Index(0, 0); N], |mut list, (nth, calories)| {
+            let item = Index(nth, calories);
+            let (Ok(index) | Err(index)) =
+                list.binary_search_by(|i| i.cmp(&item).reverse());
+            insert_at(list.as_mut_slice(), index, item);
+            list
+        })
 }
 
 fn insert_at<T>(slice: &mut [T], index: usize, element: T) {
@@ -46,16 +59,7 @@ fn insert_at<T>(slice: &mut [T], index: usize, element: T) {
 fn main() {
     static INPUT: &str = include_str!("./input.txt");
 
-    let elves = read_to_elves(INPUT).enumerate().fold(
-        [Index(0, 0); 3],
-        |mut heap, (nth, calories)| {
-            let value = Index(nth, calories);
-            let (Ok(index) | Err(index)) =
-                heap.binary_search_by(|v| v.cmp(&value).reverse());
-            insert_at(heap.as_mut_slice(), index, value);
-            heap
-        },
-    );
+    let elves: [_; 3] = iter_to_list(read_to_elves_iter(INPUT));
 
     println!("--- Day 1: Calorie Counting ---");
     if let Some(Index(nth, calories)) = elves.first() {
@@ -76,8 +80,6 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeSet;
-
     use test_case::test_case;
 
     use super::*;
@@ -90,19 +92,11 @@ mod tests {
     #[test_case(4, 1, 1000 + 2000 + 3000; "first Elf is top 4 carrying food a total of 6000 Calories")]
     #[test_case(5, 2, 4000; "second Elf is top 5 carrying one food item with 4000 Calories")]
     fn top(top_n: usize, index: usize, expected_sum: usize) {
-        let sorted_elves = {
-            read_to_elves(INPUT)
-                .enumerate()
-                .map(|(k, v)| cmp::Reverse(Index(k, v)))
-                .collect::<BTreeSet<_>>()
-        };
+        let elves: [_; 5] = iter_to_list(read_to_elves_iter(INPUT));
 
         assert_eq!(
-            sorted_elves
-                .iter()
-                .nth(top_n - 1)
-                .map(|cmp::Reverse(v)| (v.0, v.1)),
-            Some((index - 1, expected_sum))
+            elves.iter().nth(top_n - 1),
+            Some(&Index(index - 1, expected_sum))
         );
     }
 }
