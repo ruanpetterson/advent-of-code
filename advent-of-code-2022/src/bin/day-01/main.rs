@@ -1,7 +1,5 @@
 use std::{cmp, iter};
 
-use arrayvec::ArrayVec;
-
 type Calories = usize;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -28,24 +26,39 @@ fn read_to_elves(input: &str) -> impl Iterator<Item = Calories> + '_ {
     })
 }
 
+fn insert_at<T>(slice: &mut [T], index: usize, element: T) {
+    let len = slice.len();
+
+    unsafe {
+        let p = slice.as_mut_ptr().add(index);
+        if index < len {
+            core::ptr::copy(p, p.add(1), len - index);
+        } else if index == len {
+            // No copy needed
+        } else {
+            panic!("insertion index (is {index}) should be <= len (is {len})");
+        }
+
+        p.write(element);
+    }
+}
+
 fn main() {
     static INPUT: &str = include_str!("./input.txt");
 
     let elves = read_to_elves(INPUT).enumerate().fold(
-        ArrayVec::<_, 4>::new_const(),
+        [Index(0, 0); 3],
         |mut heap, (nth, calories)| {
             let value = Index(nth, calories);
-            let (Ok(position) | Err(position)) = heap.binary_search(&value);
-            heap.insert(position, value);
-            if heap.len() == 4 {
-                assert!(heap.pop_at(0).is_some());
-            };
+            let (Ok(index) | Err(index)) =
+                heap.binary_search_by(|v| v.cmp(&value).reverse());
+            insert_at(heap.as_mut_slice(), index, value);
             heap
         },
     );
 
     println!("--- Day 1: Calorie Counting ---");
-    if let Some(Index(nth, calories)) = elves.last() {
+    if let Some(Index(nth, calories)) = elves.first() {
         println!("Find the Elf carrying the most Calories: {nth}");
         println!("How many total Calories is that Elf carrying? {calories}");
     }
