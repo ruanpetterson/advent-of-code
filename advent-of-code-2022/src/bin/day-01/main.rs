@@ -1,77 +1,89 @@
-use std::{cmp, iter};
+use std::{cmp, io::BufRead, iter};
 
-type Calories = usize;
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct Elf {
+    index: usize,
+    calories: usize,
+}
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Index(usize, Calories);
-
-impl cmp::PartialOrd for Index {
+impl cmp::PartialOrd for Elf {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.1.partial_cmp(&other.1)
+        self.calories.partial_cmp(&other.calories)
     }
 }
-impl cmp::Ord for Index {
+impl cmp::Ord for Elf {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.1.cmp(&other.1)
+        self.calories.cmp(&other.calories)
     }
 }
 
-fn read_to_elves_iter(input: &str) -> impl Iterator<Item = Calories> + '_ {
+/// Read input to a functional iterator.
+fn read_to_elves_iter<'i>(
+    input: impl BufRead + 'i,
+) -> impl Iterator<Item = Elf> + 'i {
     let mut lines = input.lines();
     iter::from_fn(move || {
         lines
             .by_ref()
+            // Get only valid lines
+            .filter_map(|line| line.ok())
+            // Parse it to usize
             .map_while(|line| line.parse::<usize>().ok())
+            // Sum it
             .reduce(|acc, curr| acc + curr)
     })
+    .enumerate()
+    // Map it to indexed elves
+    .map(|(index, calories)| Elf { index, calories })
 }
 
-fn iter_to_list<const N: usize>(
-    it: impl Iterator<Item = Calories>,
-) -> [Index; N] {
-    it.enumerate()
-        .fold([Index(0, 0); N], |mut list, (nth, calories)| {
-            let item = Index(nth, calories);
-            let (Ok(index) | Err(index)) =
-                list.binary_search_by(|i| i.cmp(&item).reverse());
-            insert_at(list.as_mut_slice(), index, item);
-            list
-        })
-}
-
-/// Inserts an element at position `index` within the slice, shifting all
-/// elements after it to the right, overwriting the last one.
-fn insert_at<T>(slice: &mut [T], index: usize, element: T) {
-    if index < slice.len() {
-        // SAFETY: this is safe, trust me!
-        unsafe {
-            let p = slice.as_mut_ptr().add(index);
-            core::ptr::copy(p, p.add(1), slice.len() - index - 1);
-            p.write(element);
+/// Create a const sized and ordered array from an Elf iterator.
+/// This way we can get a top N easier.
+fn iter_to_ordered_list<const N: usize>(
+    it: impl Iterator<Item = Elf>,
+) -> [Elf; N] {
+    /// Inserts an element at position `index` within the slice, shifting all
+    /// elements after it to the right, overwriting the last one.
+    #[inline(always)]
+    fn try_insert_at<T>(slice: &mut [T], index: usize, element: T) {
+        if index < slice.len() {
+            // SAFETY: this is safe, trust me!
+            unsafe {
+                let p = slice.as_mut_ptr().add(index);
+                core::ptr::copy(p, p.add(1), slice.len() - index - 1);
+                p.write(element);
+            }
+        } else {
+            // Trying to insert out-of-bounds.
+            // No-op.
         }
-    } else {
-        // Trying to insert out-of-bounds.
-        // No-op.
     }
+
+    // Create an array to populate
+    it.fold([Elf::default(); N], |mut list, elf| {
+        // Find the correct index to put the new Elf.
+        let (Ok(index) | Err(index)) =
+            list.binary_search_by(|i| i.cmp(&elf).reverse());
+        try_insert_at(list.as_mut_slice(), index, elf);
+        list
+    })
 }
 
 fn main() {
     static INPUT: &str = include_str!("./input.txt");
 
-    let elves: [_; 3] = iter_to_list(read_to_elves_iter(INPUT));
+    let elves: [_; 3] =
+        iter_to_ordered_list(read_to_elves_iter(INPUT.as_bytes()));
 
     println!("--- Day 1: Calorie Counting ---");
-    if let Some(Index(nth, calories)) = elves.first() {
-        println!("Find the Elf carrying the most Calories: {nth}");
+    if let Some(Elf { index, calories }) = elves.first() {
+        println!("Find the Elf carrying the most Calories: {index}");
         println!("How many total Calories is that Elf carrying? {calories}");
     }
 
     println!("--- Part Two ---");
-    let top_three_sum = elves
-        .iter()
-        .take(3)
-        .map(|Index(_, calories)| calories)
-        .sum::<usize>();
+    let top_three_sum =
+        elves.iter().take(3).map(|elf| elf.calories).sum::<usize>();
     println!(
         "How many Calories are those Elves carrying in total? {top_three_sum}"
     );
@@ -91,11 +103,15 @@ mod tests {
     #[test_case(4, 1, 1000 + 2000 + 3000; "first Elf is top 4 carrying food a total of 6000 Calories")]
     #[test_case(5, 2, 4000; "second Elf is top 5 carrying one food item with 4000 Calories")]
     fn top(top_n: usize, index: usize, expected_sum: usize) {
-        let elves: [_; 5] = iter_to_list(read_to_elves_iter(INPUT));
+        let elves: [_; 5] =
+            iter_to_ordered_list(read_to_elves_iter(INPUT.as_bytes()));
 
         assert_eq!(
             elves.iter().nth(top_n - 1),
-            Some(&Index(index - 1, expected_sum))
+            Some(&Elf {
+                index: index - 1,
+                calories: expected_sum
+            })
         );
     }
 }
