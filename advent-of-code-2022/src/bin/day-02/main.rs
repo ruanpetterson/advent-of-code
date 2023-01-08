@@ -204,7 +204,7 @@ mod tests {
     fn part_2() {
         let result =
             read_to_hands(INPUT.as_bytes()).fold(0, |acc, (their, our)| {
-                let our = Outcome::from(our).matching_hand(their);
+                let our = Outcome::from(our).not().matching_hand(their);
                 acc + our.outcome(their).points() + our.points()
             });
         assert_eq!(12, result);
