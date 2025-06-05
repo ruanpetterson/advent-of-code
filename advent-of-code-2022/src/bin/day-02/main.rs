@@ -166,8 +166,8 @@ fn main() {
             acc + our.outcome(their).points() + our.points()
         });
     println!(
-        "What would your total score be if everything goes \
-        exactly according to your strategy guide? {result}"
+        "What would your total score be if everything goes exactly according \
+         to your strategy guide? {result}"
     );
 
     println!("--- Part Two ---");
@@ -180,8 +180,8 @@ fn main() {
         },
     );
     println!(
-        "What would your total score be if everything goes \
-        exactly according to your strategy guide? {result}"
+        "What would your total score be if everything goes exactly according \
+         to your strategy guide? {result}"
     );
 }
 

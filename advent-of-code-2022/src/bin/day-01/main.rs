@@ -1,4 +1,6 @@
-use std::{cmp, io::BufRead, iter};
+use std::cmp;
+use std::io::BufRead;
+use std::iter;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct Elf {
@@ -72,7 +74,9 @@ fn iter_to_ordered_list<const N: usize>(
         F: Fn(&T, &T) -> core::cmp::Ordering,
     {
         // Find the index that satisfies the predicate.
-        let Some(index) = slice.iter().position(|x| predicate(x, &element).is_ge()) else {
+        let Some(index) =
+            slice.iter().position(|x| predicate(x, &element).is_ge())
+        else {
             return; // No-op if predicate condition is not satisfied.
         };
 

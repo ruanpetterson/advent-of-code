@@ -87,7 +87,9 @@ impl Dive for Submarine {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Direction, Dive, Submarine};
+    use crate::Direction;
+    use crate::Dive;
+    use crate::Submarine;
 
     #[test]
     fn it_works() {
